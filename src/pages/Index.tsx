@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,9 +9,13 @@ import { ServiceCard } from "@/components/ServiceCard";
 import { StatsSection } from "@/components/StatsSection";
 import { TestimonialSection } from "@/components/TestimonialSection";
 import { Footer } from "@/components/Footer";
+import { UserMenu } from "@/components/UserMenu";
+import { useAuth } from "@/contexts/AuthContext";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const { user } = useAuth();
 
   const featuredServices = [
     {
@@ -55,7 +58,32 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
-      <Header />
+      {/* Updated Header with Authentication */}
+      <header className="border-b bg-white/80 backdrop-blur-sm fixed w-full top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
+              TechSewa
+            </h1>
+          </div>
+          <div className="flex items-center space-x-4">
+            {user ? (
+              <UserMenu />
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Link to="/auth">
+                  <Button variant="outline">Sign In</Button>
+                </Link>
+                <Link to="/auth">
+                  <Button className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700">
+                    Get Started
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
       
       {/* Hero Section */}
       <section className="relative pt-20 pb-16 px-4">
@@ -70,6 +98,13 @@ const Index = () => {
             <p className="text-xl md:text-2xl text-gray-700 mb-8 max-w-3xl mx-auto">
               Connect with trusted local technicians instantly. Smart matching, transparent pricing, and guaranteed quality service.
             </p>
+            {user && (
+              <div className="mb-4">
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                  Welcome back, {user.email}!
+                </Badge>
+              </div>
+            )}
           </div>
 
           {/* Search Bar */}
@@ -191,14 +226,33 @@ const Index = () => {
             Join thousands of satisfied customers and skilled technicians
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white px-8 py-4 text-lg">
-              <Users className="mr-2 h-5 w-5" />
-              Find a Technician
-            </Button>
-            <Button size="lg" variant="outline" className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 text-lg">
-              <Wrench className="mr-2 h-5 w-5" />
-              Become a Provider
-            </Button>
+            {user ? (
+              <>
+                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white px-8 py-4 text-lg">
+                  <Users className="mr-2 h-5 w-5" />
+                  Find a Technician
+                </Button>
+                <Button size="lg" variant="outline" className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 text-lg">
+                  <Wrench className="mr-2 h-5 w-5" />
+                  Become a Provider
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/auth">
+                  <Button size="lg" className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white px-8 py-4 text-lg">
+                    <Users className="mr-2 h-5 w-5" />
+                    Find a Technician
+                  </Button>
+                </Link>
+                <Link to="/auth">
+                  <Button size="lg" variant="outline" className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 text-lg">
+                    <Wrench className="mr-2 h-5 w-5" />
+                    Become a Provider
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </section>
