@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useMutation } from '@tanstack/react-query';
-import { X } from 'lucide-react';
+import { X, Upload, Image as ImageIcon } from 'lucide-react';
 
 interface ServiceFormProps {
   service?: any;
@@ -28,9 +28,12 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({ service, onClose, onSu
     category: '',
     hourly_rate: '',
     location: '',
-    image_url: '',
     availability_status: 'available'
   });
+
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [dragActive, setDragActive] = useState(false);
 
   useEffect(() => {
     if (service) {
@@ -41,18 +44,79 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({ service, onClose, onSu
         category: service.category || '',
         hourly_rate: service.hourly_rate?.toString() || '',
         location: service.location || '',
-        image_url: service.image_url || '',
         availability_status: service.availability_status || 'available'
       });
+      setImagePreview(service.image_url || '');
     }
   }, [service]);
 
+  const handleImageChange = (file: File) => {
+    if (file && file.type.startsWith('image/')) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      toast({
+        title: 'Invalid file',
+        description: 'Please select an image file',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleImageChange(e.dataTransfer.files[0]);
+    }
+  };
+
+  const uploadImage = async (file: File) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user?.id}/${Date.now()}.${fileExt}`;
+    
+    const { data, error } = await supabase.storage
+      .from('service-images')
+      .upload(fileName, file);
+
+    if (error) throw error;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('service-images')
+      .getPublicUrl(fileName);
+
+    return publicUrl;
+  };
+
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      let imageUrl = service?.image_url || '';
+      
+      if (imageFile) {
+        imageUrl = await uploadImage(imageFile);
+      }
+
       const serviceData = {
         ...data,
         hourly_rate: data.hourly_rate ? parseFloat(data.hourly_rate) : null,
-        provider_id: user?.id
+        provider_id: user?.id,
+        image_url: imageUrl
       };
 
       if (service) {
@@ -179,6 +243,62 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({ service, onClose, onSu
             />
           </div>
 
+          <div className="space-y-2">
+            <Label>Service Image</Label>
+            <div
+              className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                dragActive ? 'border-blue-400 bg-blue-50' : 'border-gray-300'
+              }`}
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+            >
+              {imagePreview ? (
+                <div className="space-y-4">
+                  <img
+                    src={imagePreview}
+                    alt="Service preview"
+                    className="max-h-40 mx-auto rounded-lg object-cover"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setImagePreview('');
+                      setImageFile(null);
+                    }}
+                  >
+                    Remove Image
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+                  <div>
+                    <p className="text-gray-600">Drag and drop an image here, or</p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('image-upload')?.click()}
+                      className="mt-2"
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      Choose File
+                    </Button>
+                  </div>
+                </div>
+              )}
+              <input
+                id="image-upload"
+                type="file"
+                accept="image/*"
+                onChange={(e) => e.target.files && handleImageChange(e.target.files[0])}
+                className="hidden"
+              />
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="hourly_rate">Hourly Rate ($)</Label>
@@ -203,18 +323,6 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({ service, onClose, onSu
                 placeholder="e.g., Downtown Area, Citywide"
               />
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="image_url">Service Image URL</Label>
-            <Input
-              id="image_url"
-              name="image_url"
-              type="url"
-              value={formData.image_url}
-              onChange={handleChange}
-              placeholder="https://example.com/image.jpg"
-            />
           </div>
 
           <div className="space-y-2">

@@ -6,7 +6,7 @@ import { ServiceList } from "@/components/ServiceList";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Search, Wrench, Zap, Paintbrush, Car, Home, Laptop, Camera, Scissors } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,23 +17,29 @@ const ServicesBrowse = () => {
 
   const categories = [
     { name: "All Services", value: "", icon: Home, color: "bg-gray-100 text-gray-700" },
-    { name: "Plumbing", value: "plumbing", icon: Wrench, color: "bg-blue-100 text-blue-700" },
-    { name: "Electrical", value: "electrical", icon: Zap, color: "bg-yellow-100 text-yellow-700" },
-    { name: "Painting", value: "painting", icon: Paintbrush, color: "bg-green-100 text-green-700" },
-    { name: "Automotive", value: "automotive", icon: Car, color: "bg-red-100 text-red-700" },
-    { name: "Home Repair", value: "home-repair", icon: Home, color: "bg-purple-100 text-purple-700" },
-    { name: "IT Support", value: "it-support", icon: Laptop, color: "bg-indigo-100 text-indigo-700" },
-    { name: "Photography", value: "photography", icon: Camera, color: "bg-pink-100 text-pink-700" },
-    { name: "Beauty & Wellness", value: "beauty", icon: Scissors, color: "bg-teal-100 text-teal-700" },
+    { name: "Plumbing", value: "Plumbing", icon: Wrench, color: "bg-blue-100 text-blue-700" },
+    { name: "Electrical", value: "Electrical", icon: Zap, color: "bg-yellow-100 text-yellow-700" },
+    { name: "Painting", value: "Painting", icon: Paintbrush, color: "bg-green-100 text-green-700" },
+    { name: "Appliances", value: "Appliances", icon: Car, color: "bg-red-100 text-red-700" },
+    { name: "HVAC", value: "HVAC", icon: Home, color: "bg-purple-100 text-purple-700" },
+    { name: "Computer Repair", value: "Computer Repair", icon: Laptop, color: "bg-indigo-100 text-indigo-700" },
+    { name: "Carpentry", value: "Carpentry", icon: Camera, color: "bg-pink-100 text-pink-700" },
+    { name: "Cleaning", value: "Cleaning", icon: Scissors, color: "bg-teal-100 text-teal-700" },
   ];
 
-  // Fetch services from database
+  // Fetch services from database with provider information
   const { data: services, isLoading } = useQuery({
     queryKey: ['browse-services', selectedCategory, searchTerm],
     queryFn: async () => {
       let query = supabase
         .from('services')
-        .select('*')
+        .select(`
+          *,
+          profiles!services_provider_id_fkey (
+            full_name,
+            email
+          )
+        `)
         .eq('availability_status', 'available')
         .order('created_at', { ascending: false });
 
@@ -119,7 +125,7 @@ const ServicesBrowse = () => {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900">
               {selectedCategory 
-                ? `${categories.find(c => c.value === selectedCategory)?.name} Services` 
+                ? `${selectedCategory} Services` 
                 : "All Services"
               }
             </h2>

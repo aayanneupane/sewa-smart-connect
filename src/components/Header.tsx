@@ -2,13 +2,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Menu, X, User, Settings, Wrench } from "lucide-react";
+import { Menu, X, User, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { UserMenu } from "@/components/UserMenu";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200">
@@ -39,10 +40,8 @@ export const Header = () => {
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <div className="flex items-center space-x-2">
-                <Button variant="ghost" className="text-gray-700 hover:text-blue-600">
-                  <User className="mr-2 h-4 w-4" />
-                  {user.email}
-                </Button>
+                <span className="text-gray-700 text-sm">{user.email}</span>
+                <UserMenu />
               </div>
             ) : (
               <>
@@ -82,10 +81,17 @@ export const Header = () => {
               )}
               <div className="pt-4 space-y-2">
                 {user ? (
-                  <Button variant="ghost" className="w-full justify-start text-gray-700 hover:text-blue-600">
-                    <User className="mr-2 h-4 w-4" />
-                    {user.email}
-                  </Button>
+                  <div className="space-y-2">
+                    <div className="text-gray-700 text-sm py-2">{user.email}</div>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-start text-gray-700 hover:text-red-600"
+                      onClick={() => signOut()}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign Out
+                    </Button>
+                  </div>
                 ) : (
                   <>
                     <Link to="/auth">
