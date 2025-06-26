@@ -40,8 +40,3 @@ export const UserMenu = () => {
     </DropdownMenu>
   );
 };
-</DropdownMenu>
-</DropdownMenuContent>
-    </DropdownMenu>
-  );
-};
