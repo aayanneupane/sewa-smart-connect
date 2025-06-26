@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,51 +11,38 @@ import { StatsSection } from "@/components/StatsSection";
 import { TestimonialSection } from "@/components/TestimonialSection";
 import { Footer } from "@/components/Footer";
 import { UserMenu } from "@/components/UserMenu";
+import { ServiceList } from "@/components/ServiceList";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { user } = useAuth();
 
-  const featuredServices = [
-    {
-      id: 1,
-      title: "Emergency Plumbing Repair",
-      provider: "Mike Johnson",
-      rating: 4.9,
-      reviews: 127,
-      price: "$45/hour",
-      image: "/placeholder.svg",
-      category: "Plumbing",
-      location: "Downtown Area",
-      availability: "Available Now"
-    },
-    {
-      id: 2,
-      title: "Electrical Installation & Repair",
-      provider: "Sarah Williams",
-      rating: 4.8,
-      reviews: 89,
-      price: "$60/hour", 
-      image: "/placeholder.svg",
-      category: "Electrical",
-      location: "North District",
-      availability: "Available Today"
-    },
-    {
-      id: 3,
-      title: "Home Appliance Repair",
-      provider: "David Chen",
-      rating: 4.7,
-      reviews: 156,
-      price: "$40/hour",
-      image: "/placeholder.svg",
-      category: "Appliances",
-      location: "West Side",
-      availability: "Available Tomorrow"
+  // Fetch all services from database
+  const { data: services, isLoading } = useQuery({
+    queryKey: ['all-services'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .eq('availability_status', 'available')
+        .order('created_at', { ascending: false })
+        .limit(6);
+      
+      if (error) throw error;
+      return data;
     }
-  ];
+  });
+
+  // Filter services based on search term
+  const filteredServices = services?.filter(service =>
+    service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    service.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    service.category?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
@@ -68,7 +56,12 @@ const Index = () => {
           </div>
           <div className="flex items-center space-x-4">
             {user ? (
-              <UserMenu />
+              <>
+                <Link to="/services">
+                  <Button variant="outline">My Services</Button>
+                </Link>
+                <UserMenu />
+              </>
             ) : (
               <div className="flex items-center space-x-2">
                 <Link to="/auth">
@@ -157,24 +150,44 @@ const Index = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Featured Services Near You
+              {searchTerm ? 'Search Results' : 'Featured Services Near You'}
             </h2>
             <p className="text-xl text-gray-600">
-              Top-rated technicians ready to help with your home and office needs
+              {searchTerm ? `Found ${filteredServices.length} services` : 'Top-rated technicians ready to help with your home and office needs'}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredServices.map((service) => (
-              <ServiceCard key={service.id} service={service} />
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+            </div>
+          ) : filteredServices.length > 0 ? (
+            <ServiceList services={filteredServices} />
+          ) : (
+            <div className="text-center py-12">
+              <h3 className="text-lg font-semibold mb-2">
+                {searchTerm ? 'No services found' : 'No services available'}
+              </h3>
+              <p className="text-gray-600 mb-4">
+                {searchTerm ? 'Try adjusting your search terms' : 'Be the first to list a service!'}
+              </p>
+              {user && (
+                <Link to="/services">
+                  <Button className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700">
+                    List Your Service
+                  </Button>
+                </Link>
+              )}
+            </div>
+          )}
 
-          <div className="text-center mt-12">
-            <Button size="lg" variant="outline" className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white">
-              View All Services
-            </Button>
-          </div>
+          {!searchTerm && filteredServices.length > 0 && (
+            <div className="text-center mt-12">
+              <Button size="lg" variant="outline" className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white">
+                View All Services
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -232,10 +245,12 @@ const Index = () => {
                   <Users className="mr-2 h-5 w-5" />
                   Find a Technician
                 </Button>
-                <Button size="lg" variant="outline" className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 text-lg">
-                  <Wrench className="mr-2 h-5 w-5" />
-                  Become a Provider
-                </Button>
+                <Link to="/services">
+                  <Button size="lg" variant="outline" className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 text-lg">
+                    <Wrench className="mr-2 h-5 w-5" />
+                    List Your Services
+                  </Button>
+                </Link>
               </>
             ) : (
               <>
