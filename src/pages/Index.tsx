@@ -46,37 +46,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
-      {/* Updated Header with Authentication */}
-      <header className="border-b bg-white/80 backdrop-blur-sm fixed w-full top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
-              TechSewa
-            </h1>
-          </div>
-          <div className="flex items-center space-x-4">
-            {user ? (
-              <>
-                <Link to="/services">
-                  <Button variant="outline">My Services</Button>
-                </Link>
-                <UserMenu />
-              </>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <Link to="/auth">
-                  <Button variant="outline">Sign In</Button>
-                </Link>
-                <Link to="/auth">
-                  <Button className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700">
-                    Get Started
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
+      <Header />
       
       {/* Hero Section */}
       <section className="relative pt-20 pb-16 px-4">
@@ -110,9 +80,11 @@ const Index = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-12 pr-32 py-4 text-lg border-2 border-blue-200 focus:border-blue-500 rounded-xl"
               />
-              <Button className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700">
-                Find Services
-              </Button>
+              <Link to="/services-browse">
+                <Button className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700">
+                  Find Services
+                </Button>
+              </Link>
             </div>
           </div>
 
@@ -183,9 +155,11 @@ const Index = () => {
 
           {!searchTerm && filteredServices.length > 0 && (
             <div className="text-center mt-12">
-              <Button size="lg" variant="outline" className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white">
-                View All Services
-              </Button>
+              <Link to="/services-browse">
+                <Button size="lg" variant="outline" className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white">
+                  View All Services
+                </Button>
+              </Link>
             </div>
           )}
         </div>
@@ -241,10 +215,12 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             {user ? (
               <>
-                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white px-8 py-4 text-lg">
-                  <Users className="mr-2 h-5 w-5" />
-                  Find a Technician
-                </Button>
+                <Link to="/services-browse">
+                  <Button size="lg" className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white px-8 py-4 text-lg">
+                    <Users className="mr-2 h-5 w-5" />
+                    Find a Technician
+                  </Button>
+                </Link>
                 <Link to="/services">
                   <Button size="lg" variant="outline" className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 text-lg">
                     <Wrench className="mr-2 h-5 w-5" />
