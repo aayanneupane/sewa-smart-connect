@@ -35,7 +35,7 @@ const ServicesBrowse = () => {
         .from('services')
         .select(`
           *,
-          profiles!services_provider_id_fkey (
+          profiles!inner(
             full_name,
             email
           )
@@ -52,7 +52,10 @@ const ServicesBrowse = () => {
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching services:', error);
+        throw error;
+      }
       return data;
     }
   });

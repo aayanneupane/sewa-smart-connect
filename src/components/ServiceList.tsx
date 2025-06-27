@@ -5,6 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, MapPin, DollarSign, Star, User } from 'lucide-react';
 
+interface ServiceProfile {
+  full_name: string;
+  email: string;
+}
+
 interface Service {
   id: string;
   title: string;
@@ -17,10 +22,7 @@ interface Service {
   availability_status: string;
   created_at: string;
   provider_id?: string;
-  profiles?: {
-    full_name: string;
-    email: string;
-  };
+  profiles?: ServiceProfile;
 }
 
 interface ServiceListProps {
