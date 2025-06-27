@@ -34,7 +34,7 @@ const ServicesBrowse = () => {
         .from('services')
         .select(`
           *,
-          profiles:provider_id (
+          profiles!provider_id (
             full_name,
             email
           )
