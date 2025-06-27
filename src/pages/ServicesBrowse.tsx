@@ -44,7 +44,8 @@ const ServicesBrowse = () => {
       }
 
       if (searchTerm) {
-        query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+        // Make search more flexible - search in title, description, detailed_description, and category
+        query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,detailed_description.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%`);
       }
 
       const { data: servicesData, error: servicesError } = await query;
@@ -62,11 +63,13 @@ const ServicesBrowse = () => {
             .from('profiles')
             .select('full_name, email')
             .eq('id', service.provider_id)
-            .maybeSingle(); // Use maybeSingle() instead of single() to handle missing profiles
+            .maybeSingle();
           
           if (profileError) {
             console.error('Error fetching profile for provider:', service.provider_id, profileError);
           }
+          
+          console.log('Profile data for provider', service.provider_id, ':', profileData);
           
           return {
             ...service,
