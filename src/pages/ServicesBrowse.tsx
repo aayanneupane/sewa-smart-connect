@@ -33,13 +33,7 @@ const ServicesBrowse = () => {
     queryFn: async () => {
       let query = supabase
         .from('services')
-        .select(`
-          *,
-          profiles (
-            full_name,
-            email
-          )
-        `)
+        .select('*')
         .eq('availability_status', 'available')
         .order('created_at', { ascending: false });
 
@@ -51,17 +45,29 @@ const ServicesBrowse = () => {
         query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
       }
 
-      const { data, error } = await query;
-      if (error) {
-        console.error('Error fetching services:', error);
-        throw error;
+      const { data: servicesData, error: servicesError } = await query;
+      if (servicesError) {
+        console.error('Error fetching services:', servicesError);
+        throw servicesError;
       }
 
-      // Transform the data to match the expected Service interface
-      return data?.map(service => ({
-        ...service,
-        profiles: service.profiles || null
-      })) || [];
+      // Fetch profiles separately for each service
+      const servicesWithProfiles = await Promise.all(
+        (servicesData || []).map(async (service) => {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('full_name, email')
+            .eq('id', service.provider_id)
+            .single();
+          
+          return {
+            ...service,
+            profiles: profileData || null
+          };
+        })
+      );
+
+      return servicesWithProfiles;
     }
   });
 
