@@ -31,6 +31,8 @@ const ServicesBrowse = () => {
   const { data: services, isLoading } = useQuery({
     queryKey: ['browse-services', selectedCategory, searchTerm],
     queryFn: async () => {
+      console.log('Fetching services with category:', selectedCategory, 'search term:', searchTerm);
+      
       let query = supabase
         .from('services')
         .select('*')
@@ -51,22 +53,29 @@ const ServicesBrowse = () => {
         throw servicesError;
       }
 
-      // Fetch profiles separately for each service
+      console.log('Services data:', servicesData);
+
+      // Fetch profiles separately for each service, using maybeSingle() to handle missing profiles
       const servicesWithProfiles = await Promise.all(
         (servicesData || []).map(async (service) => {
-          const { data: profileData } = await supabase
+          const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('full_name, email')
             .eq('id', service.provider_id)
-            .single();
+            .maybeSingle(); // Use maybeSingle() instead of single() to handle missing profiles
+          
+          if (profileError) {
+            console.error('Error fetching profile for provider:', service.provider_id, profileError);
+          }
           
           return {
             ...service,
-            profiles: profileData || null
+            profiles: profileData || { full_name: 'Unknown Provider', email: '' }
           };
         })
       );
 
+      console.log('Services with profiles:', servicesWithProfiles);
       return servicesWithProfiles;
     }
   });
