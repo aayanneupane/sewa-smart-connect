@@ -22,7 +22,7 @@ interface Service {
   availability_status: string;
   created_at: string;
   provider_id?: string;
-  profiles?: ServiceProfile;
+  profiles?: ServiceProfile | null;
 }
 
 interface ServiceListProps {

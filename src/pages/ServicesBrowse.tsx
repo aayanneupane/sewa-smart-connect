@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -35,7 +34,7 @@ const ServicesBrowse = () => {
         .from('services')
         .select(`
           *,
-          profiles!inner(
+          profiles:provider_id (
             full_name,
             email
           )
