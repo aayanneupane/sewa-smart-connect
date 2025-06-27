@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -34,7 +35,7 @@ const ServicesBrowse = () => {
         .from('services')
         .select(`
           *,
-          profiles!provider_id (
+          profiles (
             full_name,
             email
           )
@@ -55,7 +56,12 @@ const ServicesBrowse = () => {
         console.error('Error fetching services:', error);
         throw error;
       }
-      return data;
+
+      // Transform the data to match the expected Service interface
+      return data?.map(service => ({
+        ...service,
+        profiles: service.profiles || null
+      })) || [];
     }
   });
 
